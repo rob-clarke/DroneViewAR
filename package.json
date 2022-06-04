@@ -1,0 +1,18 @@
+{
+  "name": "droneviewar",
+  "version": "1.0.0",
+  "description": "View drones in AR",
+  "main": "server/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Robert Clarke",
+  "license": "ISC",
+  "dependencies": {
+    "mathjs": "^10.6.1",
+    "socket.io": "^4.5.1",
+    "svd-js": "^1.1.1"
+  }
+}

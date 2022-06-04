@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            html,body {
+                width: 100vw;
+                height: 100vh;
+            }
+            p {
+                padding: 1em;
+            }
+            a {
+                display: block;
+                width: max-content;
+                background-color: lightskyblue;
+                padding: 20px;
+                margin: auto;
+            }
+        </style>
+    </head>
+    <body>
+        <section>
+            <p>
+                Using WebXR features requires an encrypted connection.<br/>
+                To provide this over a local link you need to install a certificate
+            </p>
+            
+            <a download href="./cert.pem">Download Certificate</a>
+            
+            <p>
+                Once downloaded, install the certificate by going to:<br/>
+                Settings &gt; Updates &amp; Security &gt; Certificates
+            </p>
+            
+        </section>
+    </body>
+</html>
