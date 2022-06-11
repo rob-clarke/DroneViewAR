@@ -21,7 +21,7 @@ class GPSThread(threading.Thread):
                 self.latest_position = {
                     "lon": parsed.lon,
                     "lat": parsed.lat,
-                    "alt": parsed.height,
+                    "alt": parsed.height / 1000,
                     "fix": parsed.fixType
                 }
 
