@@ -2,6 +2,8 @@ version: '3'
 services:
   gpsserver:
     build: gps
+    ports:
+      - "3000:3000"
   
   webserver:
     build: webxr
