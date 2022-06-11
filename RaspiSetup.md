@@ -4,6 +4,8 @@ Setup steps on RasPi 4
 
 ### 2. Install Docker: https://docs.docker.com/engine/install/debian/
 
+> Setup instructions for AP host are from: https://thepi.io/how-to-use-your-raspberry-pi-as-a-wireless-access-point/
+
 ### 3. Disable serial console
 `sudo raspi-config`
 
@@ -65,3 +67,10 @@ wpa_passphrase=hololens
 Edit /etc/default/hostapd
 
 Add `DAEMON_CONF="/etc/hostapd/hostapd.conf"`
+
+
+## Other notes
+
+USB RNDIS driver for windows may be available from here: https://www.catalog.update.microsoft.com/Search.aspx?q=usb%5Cvid_0525%26pid_a4a2
+
+Use the Acer one...

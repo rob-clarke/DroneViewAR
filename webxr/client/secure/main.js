@@ -4,7 +4,7 @@ import './primitives/Spinner.js';
 
 import './components/path.js';
 
-import io from "./socket.io.esm.min.js";
+import io from "./socket.io.esm.min.js.js";
 
 import CoordinateTracker from "./scripts/CoordinateTracker.js";
 

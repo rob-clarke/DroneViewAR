@@ -1,4 +1,4 @@
-import SVD from "../svd.js";
+import SVD from "../svd.js.js";
 
 class CoordinateBuffer {
     constructor(length) {
