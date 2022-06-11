@@ -1,2 +1,3 @@
 pyubx2
 flask
+pymap3d
