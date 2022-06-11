@@ -1,0 +1,9 @@
+version: '3'
+services:
+  gpsserver:
+    build: gps
+  
+  webserver:
+    build: webxr
+    ports:
+      - "8000:8000"

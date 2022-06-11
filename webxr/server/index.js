@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { Server } from 'socket.io';
 
-const host = '172.21.34.8';
+const host = '0.0.0.0';
 const port = 8000;
 
 // import { server as insecureServer } from './insecure.js';
