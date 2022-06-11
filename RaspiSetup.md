@@ -27,8 +27,9 @@ sudo apt install hostapd dnsmasq
 
 Edit `/etc/dhcpcd.conf`. Add:
 ```
-# Setup static IP for wlan0
+# Setup static IP for wlan0 & disable wpa_supplicant
 interface wlan0
+nohook wpa_supplicant
 static ip_address=192.168.111.1/24
 ```
 
@@ -68,9 +69,16 @@ Edit /etc/default/hostapd
 
 Add `DAEMON_CONF="/etc/hostapd/hostapd.conf"`
 
+### 8. Swap to use the "proper" UART
+
+Add to `/boot/config.txt`:
+
+```
+dtoverlay=pi3-disable-bt 
+```
 
 ## Other notes
 
 USB RNDIS driver for windows may be available from here: https://www.catalog.update.microsoft.com/Search.aspx?q=usb%5Cvid_0525%26pid_a4a2
 
-Use the Acer one...
+Use the Acer one for RNDIS/USB Gadget
