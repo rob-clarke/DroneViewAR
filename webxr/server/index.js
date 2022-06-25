@@ -13,7 +13,7 @@ const port = 8000;
 //     console.log(`Server running on http://${host}:${insecurePort}`)
 // });
 
-const wwwRoot = 'client/secure';
+const wwwRoot = process.env.WWW_ROOT || 'dist';
 
 function requestListener(req,res) {
     let filePath = `./${wwwRoot}${req.url}`;

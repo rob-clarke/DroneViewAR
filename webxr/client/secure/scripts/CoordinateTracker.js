@@ -1,5 +1,5 @@
 import * as math from "npm:mathjs";
-import SVD from "svd-js";
+import { SVD } from "npm:svd-js";
 
 
 class CoordinateBuffer {
