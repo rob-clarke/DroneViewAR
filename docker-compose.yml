@@ -5,6 +5,11 @@ services:
     ports:
       - "3000:3000"
   
+  mavserver:
+    build: mavlink
+    ports:
+      - "4000:4000"
+
   webserver:
     build: webxr
     ports:

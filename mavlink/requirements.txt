@@ -1,0 +1,4 @@
+flask
+pymap3d
+pymavlink
+pyserial

@@ -130,7 +130,11 @@ setInterval(function() {
 //     console.log(tracker);
 // },1000);
 
-// Display compass marker on ground when aligned with GPS.
+// Display compass marker when aligned with GPS.
+class CompassDisplay {
+    // Circle at waist height with ticks
+    //  Attached to user position
+}
 
 
 class Drone {
