@@ -1,4 +1,6 @@
-import SVD from "../svd.js.js";
+import * as math from "npm:mathjs";
+import SVD from "svd-js";
+
 
 class CoordinateBuffer {
     constructor(length) {

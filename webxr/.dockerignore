@@ -1,3 +1,5 @@
 cert.pem
 key.pem
 node_modules/
+dist/
+.parcel-cache/

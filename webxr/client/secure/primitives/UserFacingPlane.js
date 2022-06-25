@@ -1,5 +1,3 @@
-"use strict";
-
 import '../components/look-at.js';
 
 const extendDeep = AFRAME.utils.extendDeep;

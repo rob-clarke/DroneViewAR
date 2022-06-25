@@ -1,5 +1,3 @@
-"use strict";
-
 // Add look-at component
 AFRAME.registerComponent('look-at', {
     schema: { type: 'selector' },

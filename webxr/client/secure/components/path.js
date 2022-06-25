@@ -1,5 +1,3 @@
-"use strict";
-
 function pathToPoints(path) {
     const points = [];
     if(path.length % 3 !== 0) {
