@@ -4,6 +4,25 @@ WebXR based drone HUD for AR (Hololens 2).
 
 Intention is to run server on a RasPi with access to GPS + MAVLink streams.
 
+## Overall Structure
+
+The project is split into three parts:
+- A web client and server
+- A GPS position server
+- A MAVLink server
+
+The web client and server together serve an [A-frame](https://aframe.io/)-based
+WebXR app for the Hololens, displaying a compass for alignment, drone positions
+and drone mission waypoints (flight plans).
+
+The GPS position server provides position in [local tangential plane](https://en.wikipedia.org/wiki/Local_tangent_plane_coordinates)
+coordinates (NED), an endpoint for setting the local plane origin, and an
+endpoint for GPS fix details.
+
+The MAVLink server is the bridge to the drones. It is used to retrieve any 
+drones' positions, their flight plans or missions and some limited status 
+information (currently flight mode and battery).
+
 ## Coordinate Alignment
 
 The Hololens/WebXR API does not provide access to a globally stable coordinate
