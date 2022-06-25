@@ -13,10 +13,10 @@ const port = 8000;
 //     console.log(`Server running on http://${host}:${insecurePort}`)
 // });
 
-const wwwRoot = process.env.WWW_ROOT || 'dist';
+const wwwRoot = process.env.WWW_ROOT || './dist';
 
 function requestListener(req,res) {
-    let filePath = `./${wwwRoot}${req.url}`;
+    let filePath = `${wwwRoot}${req.url}`;
 
     if( filePath[filePath.length - 1] === '/') {
         filePath += 'index.html';
