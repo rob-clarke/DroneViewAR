@@ -4,7 +4,8 @@
   "description": "View drones in AR",
   "type": "module",
   "scripts": {
-    "start": "npm run build && node server/index.js",
+    "serve": "node server/index.js",
+    "start": "npm run build && npm run serve",
     "build": "npx parcel build client/secure/index.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

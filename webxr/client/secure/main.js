@@ -6,20 +6,11 @@ import './components/path.js';
 
 import { io } from "npm:socket.io-client";
 
-import CoordinateTracker from "./scripts/CoordinateTracker.js";
+import CoordinateTracker from "./modules/CoordinateTracker.js";
 
 let tracker = new CoordinateTracker();
 
-function makeEl(tagName,attributes={},children=[]) {
-    const el = document.createElement(tagName);
-    for(let attribute of Object.keys(attributes)) {
-        el.setAttribute(attribute,attributes[attribute]);
-    }
-    for(let child of children) {
-        el.appendChild(child);
-    }
-    return el;
-}
+import { makeEl } from './modules/Utils.js';
 
 function makeCamera() {
     return makeEl('a-entity',{
@@ -49,10 +40,10 @@ function makeText(content,position,scale="1 1",align="center") {
     return el;
 }
 
-function makeDroneMarker(position={x:0,y:10,z:-20}) {
+function makeDroneMarker(position={x:0,y:10,z:-20}, color="#55ff55") {
     return makeEl('a-drone-marker',{
         position: `${position.x} ${position.y} ${position.z}`,
-        color: "#55ff55",
+        color
     });
 }
 
@@ -96,9 +87,6 @@ socket.on("external-position",(message) => {
     }
 });
 
-const droneMarker = makeDroneMarker();
-scene.appendChild(droneMarker);
-
 const pathPoints = (() => {
     const facets = 15;
     const rad = 20;
@@ -112,23 +100,9 @@ const pathPoints = (() => {
     });
 })();
 
-const path = makePath(pathPoints);
-scene.appendChild(path);
+import { Mission } from './modules/Mission.js';
 
-let theta = 0;
-setInterval(function() {
-    theta += 0.0025;
-    const rad = 20;
-    const x = rad * Math.sin(theta);
-    const z = rad * Math.cos(theta);
-    droneMarker.object3D.position.x = x;
-    droneMarker.object3D.position.y = 10;
-    droneMarker.object3D.position.z = z;
-},25);
-
-// setInterval(() => {
-//     console.log(tracker);
-// },1000);
+const mission = new Mission(scene, pathPoints);
 
 // Display compass marker when aligned with GPS.
 class CompassDisplay {
@@ -136,26 +110,49 @@ class CompassDisplay {
     //  Attached to user position
 }
 
+import { Drone } from './modules/Drone.js';
 
-class Drone {
-    constructor(scene,colour) {
-        this.scene = scene;
-        this.colour = colour;
-    }
+const drones = [...Array(4).keys()].map(() => new Drone(scene));
+const dronePhases = [0, 0.5*Math.PI, Math.PI, 1.5*Math.PI];
 
-    displayMission() {
-        this.missionPath = makePath(this.mission.points);
-        this.scene.appendChild(this.missionPath);
-    }
+const colours = [
+    ["#55ff55","#55ff55"], // Solid Green
+    ["#fc9a44","#fc9a44"], // Solid Amber
+    ["#fc9a44","#000000"], // Flashing Amber
+    ["#ff3333","#000000"], //  Flashing Red
+];
 
-    displayMarker() {
-        this.marker = makeDroneMarker();
-        this.scene.appendChild(this.marker);
-    }
+let theta = 0;
 
-    updatePosition(position) {
-        this.marker.object3D.position.x = position.x;
-        this.marker.object3D.position.y = position.y;
-        this.marker.object3D.position.z = position.z;
-    }
+function getXZ(phase,theta) {
+    const rad = 20;
+    const x = rad * Math.sin(theta+phase);
+    const z = rad * Math.cos(theta+phase);
+    return [x,z];
 }
+
+setInterval(function() {
+    theta += 0.0025;
+    for( const i in drones ) {
+        const drone = drones[i];
+        const phase = dronePhases[i];
+        const [x,z] = getXZ(phase,theta);
+        drone.updatePosition({x, y: 10, z });
+    }
+},25);
+
+let phase = true;
+setInterval(function() {
+    phase = !phase;
+    for( const i in drones ) {
+        const drone = drones[i];
+        const colour = colours[i][phase ? 0 : 1];
+        if( colour !== null ) {
+            drone.setVisible(true);
+            drone.updateColor(colour);
+        }
+        else {
+            drone.setVisible(false);
+        }
+    }
+},500);

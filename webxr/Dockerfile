@@ -20,11 +20,13 @@ RUN apk add git
 
 WORKDIR /app
 
-COPY --from=builder /app/server /app/server
-COPY --from=builder /app/dist /app/dist
-COPY --from=builder /app/cert.pem /app/key.pem /app/package.json /app/
+COPY --from=builder /app/package.json /app/
 
 RUN npm install --omit=dev
+
+COPY --from=builder /app/server /app/server
+COPY --from=builder /app/dist /app/dist
+COPY --from=builder /app/cert.pem /app/key.pem /app/
 
 ENV WWW_ROOT=/app/dist
 CMD node /app/server/index.js

@@ -1,0 +1,6 @@
+{
+    "/socket.io": {
+        "target": "https://localhost:8000",
+        "secure": false
+    }
+}
