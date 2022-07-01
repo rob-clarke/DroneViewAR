@@ -1,6 +1,6 @@
 FROM node:alpine as builder
 
-RUN apk add openssl
+RUN apk add openssl python build-base
 
 WORKDIR /app
 
