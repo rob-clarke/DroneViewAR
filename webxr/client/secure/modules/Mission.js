@@ -1,11 +1,11 @@
 import {makeEl} from './Utils.js';
 
 export class Mission {
-    constructor(scene, points, color="#ffffff") {
+    constructor(parent, points, color="#ffffff") {
         const pointStrs = points.map(p => [p.x,p.y,p.z].join(', '));
         const pathStr = `path: ${pointStrs.join(', ')}; color: ${color};`;
         this.el = makeEl('a-entity',{path: pathStr, shader: "flat"});
-        scene.appendChild(this.el);
+        parent.appendChild(this.el);
     }
 
     updateColor(color) {

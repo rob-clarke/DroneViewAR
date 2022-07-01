@@ -1,12 +1,12 @@
 import { makeEl } from './Utils.js';
 
 export class Drone {
-    constructor(scene,position={x:0,y:0,z:0},colour="#ffffff") {
+    constructor(parent,position={x:0,y:0,z:0},colour="#ffffff") {
         this.markerEl = makeEl('a-drone-marker',{
             position: `${position.x} ${position.y} ${position.z}`,
             colour
         });
-        scene.appendChild(this.markerEl);
+        parent.appendChild(this.markerEl);
     }
 
     displayMission() {

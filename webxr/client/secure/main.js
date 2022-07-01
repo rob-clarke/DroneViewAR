@@ -8,7 +8,7 @@ import { io } from "npm:socket.io-client";
 
 import CoordinateTracker from "./modules/CoordinateTracker.js";
 
-let tracker = new CoordinateTracker();
+let transformTracker = new CoordinateTracker();
 
 import { makeEl } from './modules/Utils.js';
 
@@ -40,22 +40,15 @@ function makeText(content,position,scale="1 1",align="center") {
     return el;
 }
 
-function makeDroneMarker(position={x:0,y:10,z:-20}, color="#55ff55") {
-    return makeEl('a-drone-marker',{
-        position: `${position.x} ${position.y} ${position.z}`,
-        color
-    });
-}
-
-function makePath(points,color = "#ffffff") {
-    const pointStrs = points.map(p => [p.x,p.y,p.z].join(', '));
-    const pathStr = `path: ${pointStrs.join(', ')}; color: ${color};`;
-    return makeEl('a-entity',{path: pathStr, shader: "flat"});
-}
-
-
 const scene = makeScene();
 const camera = makeCamera();
+
+const mavFrame = makeEl('a-entity',{
+    position: "0 0 0",
+    rotation: "90 0 0",
+});
+
+scene.appendChild(mavFrame);
 
 const progressText = makeText("Aligning Coordinates\nMove around in the world\nPositions: 0","0 0 -3","0.5 0.5");
 camera.appendChild(progressText);
@@ -76,14 +69,14 @@ let socket = io();
 socket.on("external-position",(message) => {
     
     let {x,y,z} = camera.getAttribute("position");
-    tracker.updateInternalCoords(x,y,z,Date.now());
+    transformTracker.updateInternalCoords(x,y,z,Date.now());
     
     let t = 0;
     ({x,y,z,t} = message);
-    tracker.updateExternalCoords(x,y,z,t);
-    progressText.setAttribute("value",`Aligning Coordinates\nMove around in the world\nPositions: ${tracker.obtained}`);
-    if(tracker.obtained > 5) {
-        tracker.updateTransformMatrix();
+    transformTracker.updateExternalCoords(x,y,z,t);
+    progressText.setAttribute("value",`Aligning Coordinates\nMove around in the world\nPositions: ${transformTracker.obtained}`);
+    if(transformTracker.obtained > 5) {
+        transformTracker.updateTransformMatrix();
     }
 });
 
@@ -94,15 +87,15 @@ const pathPoints = (() => {
     return [...Array(facets+1).keys()].map((v) => {
         const theta = theta_inc * v;
         const x = rad * Math.sin(theta);
-        const y = 10;
-        const z = rad * Math.cos(theta);
+        const y = rad * Math.cos(theta);
+        const z = -10;
         return {x,y,z};
     });
 })();
 
 import { Mission } from './modules/Mission.js';
 
-const mission = new Mission(scene, pathPoints);
+const mission = new Mission(mavFrame, pathPoints);
 
 // Display compass marker when aligned with GPS.
 class CompassDisplay {
@@ -112,7 +105,7 @@ class CompassDisplay {
 
 import { Drone } from './modules/Drone.js';
 
-const drones = [...Array(4).keys()].map(() => new Drone(scene));
+const drones = [...Array(4).keys()].map(() => new Drone(mavFrame));
 const dronePhases = [0, 0.5*Math.PI, Math.PI, 1.5*Math.PI];
 
 const colours = [
@@ -124,11 +117,11 @@ const colours = [
 
 let theta = 0;
 
-function getXZ(phase,theta) {
+function getXY(phase,theta) {
     const rad = 20;
     const x = rad * Math.sin(theta+phase);
-    const z = rad * Math.cos(theta+phase);
-    return [x,z];
+    const y = rad * Math.cos(theta+phase);
+    return [x,y];
 }
 
 setInterval(function() {
@@ -136,8 +129,8 @@ setInterval(function() {
     for( const i in drones ) {
         const drone = drones[i];
         const phase = dronePhases[i];
-        const [x,z] = getXZ(phase,theta);
-        drone.updatePosition({x, y: 10, z });
+        const [x,y] = getXY(phase,theta);
+        drone.updatePosition({x, y, z: -10 });
     }
 },25);
 
