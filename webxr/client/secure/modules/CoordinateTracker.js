@@ -84,12 +84,10 @@ export default class CoordinateTracker {
             const internal = this.internalCoords.get_vector(i);
             P_int._data[i][0] = internal._data[0][0] - sum_internal._data[0][0];
             P_int._data[i][1] = internal._data[1][0] - sum_internal._data[1][0];
-            // P_int._data[i][2] = internal._data[2][0] - sum_internal._data[2][0];
 
             const external = this.internalCoords.get_vector(i);
             Q_ext._data[i][0] = external._data[0][0] - sum_external._data[0][0];
             Q_ext._data[i][1] = external._data[1][0] - sum_external._data[1][0];
-            // Q_ext._data[i][2] = external._data[2][0] - sum_external._data[2][0];
         }
 
         const H = math.multiply(math.transpose(Q_ext),P_int);
@@ -103,8 +101,7 @@ export default class CoordinateTracker {
         this.transform_matrix = math.matrix([
             [...R[0], translation._data[0][0] ],
             [...R[1], translation._data[1][0] ],
-            // [...R[2], translation._data[2][0] ],
-            [0, 0, 1]
+            [  0,  0,                       1 ]
         ]);
     }
 }

@@ -70,6 +70,7 @@ let socket = io();
 socket.on("external-position",(message) => {
     
     let {x,y,z} = camera.getAttribute("position");
+    // We assume gravity is aligned so use x,z for internal coords to allow for 2D fitting problem
     coordinateTracker.updateInternalCoords(x,z,Date.now());
     
     let t = 0;
@@ -86,7 +87,10 @@ socket.on("external-position",(message) => {
         }
         coordinateTracker.updateTransformMatrix();
         const transform = new THREE.Matrix4();
+        // Get the transform that rotates the mavFrame to the WebXR frame
         const ctfm = coordinateTracker.transform_matrix.toArray();
+        // This matrix builds in the transform from NED to the WebXR orientation
+        //  i.e. anything within the mavFrame is expressed in NED
         transform.set(
             ctfm[0][0],  0,  ctfm[0][1], ctfm[0][2],
                      0,  0, -ctfm[1][1],          0,
