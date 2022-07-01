@@ -8,7 +8,7 @@ import { io } from "npm:socket.io-client";
 
 import CoordinateTracker from "./modules/CoordinateTracker.js";
 
-let transformTracker = new CoordinateTracker();
+let coordinateTracker = new CoordinateTracker();
 
 import { makeEl } from './modules/Utils.js';
 
@@ -65,18 +65,36 @@ scene.addEventListener('enter-vr',() => { camera.setAttribute('camera','active',
 
 document.body.appendChild(scene);
 
+let aligned = false;
 let socket = io();
 socket.on("external-position",(message) => {
     
     let {x,y,z} = camera.getAttribute("position");
-    transformTracker.updateInternalCoords(x,y,z,Date.now());
+    coordinateTracker.updateInternalCoords(x,z,Date.now());
     
     let t = 0;
     ({x,y,z,t} = message);
-    transformTracker.updateExternalCoords(x,y,z,t);
-    progressText.setAttribute("value",`Aligning Coordinates\nMove around in the world\nPositions: ${transformTracker.obtained}`);
-    if(transformTracker.obtained > 5) {
-        transformTracker.updateTransformMatrix();
+    coordinateTracker.updateExternalCoords(x,y,t);
+    if(coordinateTracker.obtained < 5) {
+        progressText.setAttribute("value",`Aligning Coordinates\nMove around in the world\nPositions: ${coordinateTracker.obtained}`);
+    }
+    else {
+        if( !aligned ) {
+            camera.removeChild(progressText);
+            camera.removeChild(spinner);
+            aligned = true;
+        }
+        coordinateTracker.updateTransformMatrix();
+        const transform = new THREE.Matrix4();
+        const ctfm = coordinateTracker.transform_matrix.toArray();
+        transform.set(
+            ctfm[0][0],  0,  ctfm[0][1], ctfm[0][2],
+                     0,  0, -ctfm[1][1],          0,
+            ctfm[1][0],  1,           0, ctfm[1][2],
+                     0,  0,           0,          1,
+        );
+        mavFrame.object3D.matrix = transform;
+        mavFrame.object3D.matrixAutoUpdate = false; 
     }
 });
 
@@ -108,13 +126,6 @@ import { Drone } from './modules/Drone.js';
 const drones = [...Array(4).keys()].map(() => new Drone(mavFrame));
 const dronePhases = [0, 0.5*Math.PI, Math.PI, 1.5*Math.PI];
 
-const colours = [
-    ["#55ff55","#55ff55"], // Solid Green
-    ["#fc9a44","#fc9a44"], // Solid Amber
-    ["#fc9a44","#000000"], // Flashing Amber
-    ["#ff3333","#000000"], //  Flashing Red
-];
-
 let theta = 0;
 
 function getXY(phase,theta) {
@@ -134,18 +145,37 @@ setInterval(function() {
     }
 },25);
 
-let phase = true;
+const colours = [
+    "#55ff55", // Solid Green
+    "#fc9a44", // Solid Amber
+    [[0,"#fc9a44"],[7,null],[8,"#fc9a44"],[9,null]], // Flashing Amber
+    [[0,"#ff3333"],[5,"#3333ff"],[8,"#ff3333"],[9,"#3333ff"]], // Flashing Red/Blue
+    [[0,"#ff3333"],[7,null],[8,"#ff3333"],[9,null]], // Flashing Red/Blue
+];
+let ticks = 10;
+let tick = 0;
 setInterval(function() {
-    phase = !phase;
+    tick = (tick + 1) % ticks;
     for( const i in drones ) {
         const drone = drones[i];
-        const colour = colours[i][phase ? 0 : 1];
-        if( colour !== null ) {
-            drone.setVisible(true);
-            drone.updateColor(colour);
+        const colourPattern = colours[i];
+        if(Array.isArray(colourPattern)) {
+            let colour = null;
+            for( let entry of colourPattern ) {
+                if( entry[0] <= tick ) {
+                    colour = entry[1];
+                }
+            }
+            if( colour !== null ) {
+                drone.setVisible(true);
+                drone.updateColor(colour);
+            }
+            else {
+                drone.setVisible(false);
+            }
         }
         else {
-            drone.setVisible(false);
+            drone.updateColor(colourPattern);
         }
     }
-},500);
+},100);
