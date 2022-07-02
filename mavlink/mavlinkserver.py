@@ -20,6 +20,7 @@ class Drone():
     battery: float = -1.0
     mode: str = "Unknown"
     position: List[float] = field(default_factory=lambda: [math.nan] * 3)
+    colour: str = "Unknown"
 
 
 class DroneMonitor(threading.Thread):
@@ -42,6 +43,8 @@ class DroneMonitor(threading.Thread):
                 self.handle_status(msg)
             if msg.name == "LOCAL_POSITION_NED":
                 self.handle_position(msg)
+            if msg.name == "PARAM_VALUE":
+                self.handle_param(msg)
 
     @staticmethod
     def _get_drone_key(sys_id,comp_id):
@@ -65,11 +68,24 @@ class DroneMonitor(threading.Thread):
         drone = self._get_drone(msg)
         drone.position = [msg.x,msg.y,msg.z]
 
+    def handle_param(self,msg):
+        drone = self._get_drone(msg)
+        if msg.param_id != "SCR_USER1":
+            return
+        colours = {
+            1: "green",
+            2: "amber",
+            3: "red",
+            4: "amber_flash",
+            5: "red_flash",
+        }
+        drone.colour = colours[int(msg.param_value)]
+
     def check_heartbeat(self):
         if time.time() - self.last_heartbeat_time >= 1.0:
             self.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_ONBOARD_CONTROLLER, mavutil.mavlink.MAV_AUTOPILOT_INVALID,0,0,0)
             self.last_heartbeat_time = time.time()
-            
+
     def recv(self,match=None):
         if match == None and self.matching == False:
             return self.master.recv_msg()
