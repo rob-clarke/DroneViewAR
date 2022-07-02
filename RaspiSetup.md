@@ -4,6 +4,34 @@ Setup steps on RasPi 4
 
 ### 2. Install Docker: https://docs.docker.com/engine/install/debian/
 
+#### 2a. Setup the repo
+
+```
+sudo apt-get update
+sudo apt-get install ca-certificates curl gnupg lsb-release
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+#### 2b. Install docker
+
+```
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+```
+
+#### 2c. Add user to docker group
+
+So you don't need to type `sudo` before docker each time
+
+```
+sudo groupadd docker
+sudo usermod -aG docker $USER
+```
+
 > Setup instructions for AP host are from: https://thepi.io/how-to-use-your-raspberry-pi-as-a-wireless-access-point/
 
 ### 3. Disable serial console
@@ -78,6 +106,20 @@ dtoverlay=pi3-disable-bt
 ```
 
 ## Other notes
+
+### USB Ethernet Gadget Setup
+
+Add to `/boot/config.txt`:
+
+```
+dtoverlay=dwc2
+```
+
+Add after `rootwait` to `/boot/cmdline.txt`:
+
+```
+modules-load=dwc2,g_ether
+```
 
 USB RNDIS driver for windows may be available from here: https://www.catalog.update.microsoft.com/Search.aspx?q=usb%5Cvid_0525%26pid_a4a2
 
