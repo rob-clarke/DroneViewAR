@@ -5,7 +5,7 @@ import os, threading, copy
 from pymap3d.ned import geodetic2ned
 
 from serial import Serial
-from pyubx2 import UBXReader
+from pyubx2 import UBXReader, UBXMessage
 
 from flask import Flask, request, jsonify
 
@@ -17,12 +17,22 @@ class GPSThread(threading.Thread):
         ubr = UBXReader(self.stream, protfilter=2)
 
         for (_,parsed) in ubr:
+            if not isinstance(parsed, UBXMessage):
+                continue
             if parsed.identity == 'NAV-PVT':
+                rtk = "None"
+                if parsed.carrSoln == 1:
+                    rtk = "FLOAT"
+                if parsed.carrSoln == 2:
+                    rtk = "FIXED"
+                
                 self.latest_position = {
                     "lon": parsed.lon,
                     "lat": parsed.lat,
                     "alt": parsed.height / 1000,
-                    "fix": parsed.fixType
+                    "fix": parsed.fixType,
+                    "carrSoln": parsed.carrSoln,
+                    "RTK": rtk,
                 }
     
     def inject_rtcm(self, rtcm_bytes):
@@ -95,3 +105,4 @@ def post_rtcm():
     # Send RTCM data to the GPS unit
     data = request.get_data()
     gpsThread.inject_rtcm(data)
+    return jsonify({"success": True})
