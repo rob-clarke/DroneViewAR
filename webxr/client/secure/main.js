@@ -78,9 +78,13 @@ socket.on("external-position",(message) => {
         message.x, message.y, message.t
     );
     
-    socket.emit('positioning',{internal: {x,y,z}, external: message});
+    socket.emit('positioning',{
+        internal: {x,y,z},
+        external: {x: message.x, y: message.y, z: message.z},
+        aligned
+    });
 
-    if(coordinateTracker.getSpread() > 5) {
+    if(coordinateTracker.getSpread() < 5) {
         progressText.setAttribute("value",`Aligning Coordinates\nMove around in the world\nPositions: ${coordinateTracker.obtained}`);
     }
     else {
