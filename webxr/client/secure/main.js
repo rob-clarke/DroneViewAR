@@ -132,6 +132,10 @@ const dronePhases = [0, 0.5*Math.PI, Math.PI, 1.5*Math.PI];
 
 let theta = 0;
 
+const northMarker = new Drone(mavFrame);
+northMarker.updatePosition(10,0,0);
+northMarker.updateColor("#3333ff")
+
 function getXY(phase,theta) {
     const rad = 20;
     const x = rad * Math.sin(theta+phase);
