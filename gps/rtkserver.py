@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import os, threading, copy
-import urllib
 import time
+import requests
 
 from serial import Serial
 from pyubx2 import UBXReader, UBXMessage
@@ -13,18 +13,31 @@ class GPSThread(threading.Thread):
         super().__init__()
         self.stream = stream
         self.callbacks = []
+        self.survey_complete = False
 
     def run(self):
         ubr = UBXReader(self.stream, protfilter=2|4)
 
         for (raw,parsed) in ubr:
+            if isinstance(parsed, UBXMessage):
+                if parsed.identity == 'CFG-VALGET':
+                    print(parsed)
+                if parsed.identity == 'NAV-SVIN':
+                    if parsed.active == 1:
+                        self.survey_complete = False
+                        print(f"Surveying... ({parsed.meanAcc/10000:5.3f}m)")
+                    elif parsed.valid == 1 and not self.survey_complete:
+                        self.survey_complete = True
+                        print("Survey complete")
+                if parsed.identity == 'ACK-ACK':
+                    print(parsed)
             if isinstance(parsed, RTCMMessage):
                 for callback in self.callbacks:
                     try:
                         callback(raw)
-                    except:
-                        print("Removing dead callback")
-                        self.callbacks.remove(callback)
+                    except Exception as e:
+                        print(e)
+                        pass
 
     def subscribe(self,callback):
         print("New subscription")
@@ -52,39 +65,52 @@ def setup_rtcm_output(stream):
 
     stream.write(msg.serialize())
 
-def start_autosurvey(stream):
+def set_autosurvey(stream,enabled,duration,accuracy):
     layers = 1
     transaction = 0
+    mode = 1 if enabled else 0
     cfgData = [
-        ("CFG_TMODE_MODE", 0), # Set mode survey in
-    ]
+        ("CFG_TMODE_MODE", mode),
+        ("CFG_TMODE_SVIN_MIN_DUR", duration), # Write some other value here
+        ("CFG_TMODE_SVIN_ACC_LIMIT", accuracy), # Write some other value here
 
-    # Disable TMODE to force the start of a new survey
-    msg = UBXMessage.config_set(layers, transaction, cfgData)
-    stream.write(msg.serialize())
-
-    time.sleep(1)
-
-    cfgData = [
-        ("CFG_TMODE_MODE", 1), # Set mode survey in
-        ("CFG_TMODE_SVIN_MIN_DUR", 20), # Set min survey time 20s 
-        ("CFG_TMODE_SVIN_ACC_LIMIT", 20_000), # Set survey accuracy 2m (20_000 dmm)
     ]
 
     msg = UBXMessage.config_set(layers, transaction, cfgData)
     stream.write(msg.serialize())
+
+def start_autosurvey(stream):
+    """
+    Start autosurvey process
+    Most reliable way seems to be to configure survey with different time and
+     accuracy
+    """
+    print("Starting autosurvey...")
+    set_autosurvey(stream,True,0,0)
+
+    time.sleep(2)
+    set_autosurvey(stream,True,10,20_000)
 
 def configure_rtkbase(stream):
-    setup_rtcm_output(stream)
+    # setup_rtcm_output(stream)
     start_autosurvey(stream)
 
 def send_to_endpoint(path,data):
-    req = urllib.request.Request(
-        path,
-        data=data,
-        headers={'Content-Type': 'application/octet-stream'}
-    )
-    urllib.urlopen(req)
+    headers={'Content-Type': 'application/octet-stream'}
+    requests.post(path,data=data,headers=headers)
+
+def get_config_val(stream):
+    layer = 0
+    position = 0
+    keys = [
+        "CFG_TMODE_MODE",
+        "CFG_TMODE_SVIN_MIN_DUR",
+        "CFG_TMODE_SVIN_ACC_LIMIT",
+    ]
+    
+    
+    msg = UBXMessage.config_poll(layer,position,keys)
+    stream.write(msg.serialize())
 
 if __name__ == "__main__":
     stream = Serial(os.environ['SERIAL_PATH'],int(os.environ['SERIAL_BAUD']))

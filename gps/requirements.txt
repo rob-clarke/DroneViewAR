@@ -1,3 +1,4 @@
-pyubx2
 flask
 pymap3d
+pyubx2
+requests
