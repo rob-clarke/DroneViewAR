@@ -12,6 +12,10 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 class GPSThread(threading.Thread):
+    def __init__(self):
+        super().__init__()
+        self.new_position = threading.Event()
+
     def run(self):
         self.stream = Serial(os.environ['SERIAL_PATH'],int(os.environ['SERIAL_BAUD']))
         ubr = UBXReader(self.stream, protfilter=2)
@@ -34,6 +38,7 @@ class GPSThread(threading.Thread):
                     "carrSoln": parsed.carrSoln,
                     "RTK": rtk,
                 }
+                self.new_position.set()
     
     def inject_rtcm(self, rtcm_bytes):
         self.stream.write(rtcm_bytes)
@@ -68,12 +73,14 @@ def set_origin():
 
 @app.route("/position")
 def get_position():
-    # Return the latest cartesian position
+    # Return the latest cartesian position received after the request
     if origin["lat"] is None:
         return jsonify({
             "success": False,
             "message": "No origin set",
         })
+    gpsThread.new_position.clear()
+    gpsThread.new_position.wait()
     latest_position = copy.copy(gpsThread.latest_position)
     [x,y,z] = geodetic2ned(
         latest_position["lat"],latest_position["lon"],latest_position["alt"],
