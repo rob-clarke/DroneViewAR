@@ -18,6 +18,14 @@ class GPSThread(threading.Thread):
     def run(self):
         ubr = UBXReader(self.stream, protfilter=2|4)
 
+        while True:
+            try:
+                self.read_messages(ubr)
+            except Exception as e:
+                print(e)
+        
+    
+    def read_messages(self,ubr):
         for (raw,parsed) in ubr:
             if isinstance(parsed, UBXMessage):
                 if parsed.identity == 'CFG-VALGET':
