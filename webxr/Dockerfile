@@ -31,4 +31,5 @@ COPY --from=builder /app/dist /app/dist
 COPY --from=builder /app/cert.pem /app/key.pem /app/
 
 ENV WWW_ROOT=/app/dist
+ENV GPS_POSITION_URL=http://localhost:3000/position
 CMD node /app/server/index.js

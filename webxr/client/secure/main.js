@@ -74,9 +74,13 @@ socket.on("external-position",(message) => {
     coordinateTracker.updateInternalCoords(x,z,Date.now());
     
     let t = 0;
-    ({x,y,z,t} = message);
-    coordinateTracker.updateExternalCoords(x,y,t);
-    if(coordinateTracker.obtained < 5) {
+    coordinateTracker.updateExternalCoords(
+        message.x, message.y, message.t
+    );
+    
+    socket.emit('positioning',{internal: {x,y,z}, external: message});
+
+    if(coordinateTracker.getSpread() > 5) {
         progressText.setAttribute("value",`Aligning Coordinates\nMove around in the world\nPositions: ${coordinateTracker.obtained}`);
     }
     else {
@@ -133,7 +137,7 @@ const dronePhases = [0, 0.5*Math.PI, Math.PI, 1.5*Math.PI];
 let theta = 0;
 
 const northMarker = new Drone(mavFrame);
-northMarker.updatePosition(10,0,0);
+setTimeout(() => northMarker.updatePosition({x:10, y:0, z:0}), 100);
 northMarker.updateColor("#3333ff")
 
 function getXY(phase,theta) {

@@ -76,15 +76,26 @@ function requestListener(req,res) {
 
 function socketListener(socket) {
     console.log("Socket connection");
-    const sendData = () => {
+    const sendData = (x,y,z) => {
         socket.emit('external-position',{
-            x: Math.random(),
-            y: Math.random(),
-            z: Math.random(),
-            t: 0
+            x, y, z, t: 0
         });
     };
-    const interval = setInterval(sendData, 1000);
+    const interval = setInterval(() => {
+        fetch(process.env.GPS_POSITION_URL)
+          .then(res => res.json())
+          .then(obj => {
+            // obj looks like:
+            // {success:true|false,x,y,z}
+            if( !obj.success ) {
+                console.warn("Failed to get GPS position");
+                return;
+            }
+            sendData(obj.x,obj.y,obj.z);
+          })
+            .catch(e => console.error(e));
+    }, 1000);
+    socket.on("positioning",(m) => console.log(m));
     socket.on("disconnect",() => clearInterval(interval));
 }
 

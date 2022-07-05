@@ -14,3 +14,5 @@ services:
     build: webxr
     ports:
       - "8000:8000"
+    environment:
+      - GPS_POSITION_URL=http://gps:3000/position

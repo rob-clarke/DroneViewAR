@@ -62,6 +62,29 @@ export default class CoordinateTracker {
         this.obtained += 1;
     }
 
+    getSpread() {
+        const expected_points = this.obtained > 200 ? 200 : this.obtained;
+        let sum_external = math.zeros(2,1);
+
+        for( let i = 0; i < expected_points; i++ ) {
+            math.add(sum_external, this.externalCoords.get_vector(i));
+        }
+        
+        mean_point = math.multiply(1/expected_points, sum_external);
+        
+        let max_dist = 0;
+        for( let i = 0; i < expected_points; i++ ) {
+            let dist = math.norm(
+                math.subtract(this.externalCoords.get_vector(i), mean_point)
+            );
+            if( dist > max_dist ) {
+                max_dist = dist;
+            } 
+        }
+        
+        return max_dist;
+    }
+    
     updateTransformMatrix() {
         // https://en.wikipedia.org/wiki/Kabsch_algorithm
         // https://towardsdatascience.com/the-definitive-procedure-for-aligning-two-sets-of-3d-points-with-the-kabsch-algorithm-a7ec2126c87e
@@ -71,7 +94,7 @@ export default class CoordinateTracker {
 
         for( let i = 0; i < expected_points; i++ ) {
             sum_internal = math.add(sum_internal,this.internalCoords.get_vector(i));
-            math.add(sum_external,this.externalCoords.get_vector(i));
+            sum_external = math.add(sum_external,this.externalCoords.get_vector(i));
         }
 
         sum_internal = math.multiply(1/expected_points,sum_internal);
