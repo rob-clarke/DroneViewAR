@@ -63,8 +63,10 @@ scene.appendChild(camera);
 
 let in_augmented_reality = false;
 scene.addEventListener('enter-vr',() => {
-    camera.setAttribute('camera','active',true);
-    in_augmented_reality = true;
+    setTimeout(() => {
+        camera.setAttribute('camera','active',true);
+        in_augmented_reality = true;
+    }, 100);
 });
 
 document.body.appendChild(scene);
@@ -88,14 +90,19 @@ socket.on("external-position",(message) => {
     socket.emit('positioning',{
         internal: {x,y,z},
         external: {x: message.x, y: message.y, z: message.z},
-        aligned
+        aligned,
     });
 
     if( aligned ) {
         return;
     }
     
-    if(coordinateTracker.getSpread() < 5 && !aligned) {
+    let spread = coordinateTracker.getSpread();
+    socket.emit('positioning',{
+        spread
+    });
+    
+    if(spread < 5 && !aligned) {
         progressText.setAttribute("value",`Aligning Coordinates\nMove around in the world\nPositions: ${coordinateTracker.obtained}`);
     }
     else {
