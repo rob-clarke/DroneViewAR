@@ -97,7 +97,7 @@ def configure_rtkbase(stream):
 
 def send_to_endpoint(path,data):
     headers={'Content-Type': 'application/octet-stream'}
-    requests.post(path,data=data,headers=headers)
+    requests.post(path,data=data,headers=headers,timeout=1)
 
 def get_config_val(stream):
     layer = 0
