@@ -70,19 +70,18 @@ export default class CoordinateTracker {
             math.add(sum_external, this.externalCoords.get_vector(i));
         }
         
-        mean_point = math.multiply(1/expected_points, sum_external);
+        const mean_point = math.multiply(1/expected_points, sum_external);
         
         let max_dist = 0;
         for( let i = 0; i < expected_points; i++ ) {
-            let dist = math.norm(
-                math.subtract(this.externalCoords.get_vector(i), mean_point)
-            );
+            const delta = math.subtract(this.externalCoords.get_vector(i), mean_point);
+            const dist = delta._data[0][0]^2 + delta._data[1][0]^2;
             if( dist > max_dist ) {
                 max_dist = dist;
             } 
         }
         
-        return max_dist;
+        return Math.sqrt(max_dist);
     }
     
     updateTransformMatrix() {

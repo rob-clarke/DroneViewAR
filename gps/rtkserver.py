@@ -3,6 +3,7 @@
 import os, threading, copy
 import time
 import requests
+import urllib3.exceptions
 
 from serial import Serial
 from pyubx2 import UBXReader, UBXMessage
@@ -105,7 +106,10 @@ def configure_rtkbase(stream):
 
 def send_to_endpoint(path,data):
     headers={'Content-Type': 'application/octet-stream'}
-    requests.post(path,data=data,headers=headers,timeout=1)
+    try:
+        requests.post(path,data=data,headers=headers,timeout=1)
+    except requests.exceptions.ConnectionError:
+        pass
 
 def get_config_val(stream):
     layer = 0
