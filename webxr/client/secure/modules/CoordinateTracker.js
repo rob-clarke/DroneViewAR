@@ -75,7 +75,7 @@ export default class CoordinateTracker {
         let max_dist = 0;
         for( let i = 0; i < expected_points; i++ ) {
             const delta = math.subtract(this.externalCoords.get_vector(i), mean_point);
-            const dist = delta._data[0][0]^2 + delta._data[1][0]^2;
+            const dist = Math.pow(delta._data[0][0],2) + Math.pow(delta._data[1][0],2);
             if( dist > max_dist ) {
                 max_dist = dist;
             } 
