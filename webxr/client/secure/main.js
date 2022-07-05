@@ -37,6 +37,7 @@ function makeText(content,position,scale="1 1",align="center") {
     el.setAttribute('scale',scale);
     el.setAttribute('align',align);
     el.setAttribute('value',content);
+    el.setAttribute('font',"./assets/Roboto-msdf.json");
     return el;
 }
 
@@ -103,7 +104,10 @@ socket.on("external-position",(message) => {
     });
     
     if(spread < 5 && !aligned) {
-        progressText.setAttribute("value",`Aligning Coordinates\nMove around in the world\nPositions: ${coordinateTracker.obtained}`);
+        progressText.setAttribute(
+            "value",
+            `Aligning Coordinates\nMove around in the world\nPositions: ${coordinateTracker.obtained}`
+        );
     }
     else {
         if( !aligned ) {

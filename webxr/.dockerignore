@@ -5,3 +5,4 @@ dist/
 .parcel-cache/
 .gitignore
 Dockerfile
+**/.gitkeep

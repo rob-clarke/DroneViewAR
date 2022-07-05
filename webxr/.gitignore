@@ -1,2 +1,4 @@
 dist/
 .parcel-cache/
+client/secure/assets/*
+!client/secure/assets/.gitkeep
