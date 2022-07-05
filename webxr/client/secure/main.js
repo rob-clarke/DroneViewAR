@@ -61,13 +61,20 @@ camera.appendChild(spinner);
 
 scene.appendChild(camera);
 
-scene.addEventListener('enter-vr',() => { camera.setAttribute('camera','active',true); });
+let in_augmented_reality = false;
+scene.addEventListener('enter-vr',() => {
+    camera.setAttribute('camera','active',true);
+    in_augmented_reality = true;
+});
 
 document.body.appendChild(scene);
 
 let aligned = false;
 let socket = io();
 socket.on("external-position",(message) => {
+    if( !in_augmented_reality ) { 
+        return;
+    }
     
     let {x,y,z} = camera.getAttribute("position");
     // We assume gravity is aligned so use x,z for internal coords to allow for 2D fitting problem
@@ -84,7 +91,11 @@ socket.on("external-position",(message) => {
         aligned
     });
 
-    if(coordinateTracker.getSpread() < 5) {
+    if( aligned ) {
+        return;
+    }
+    
+    if(coordinateTracker.getSpread() < 5 && !aligned) {
         progressText.setAttribute("value",`Aligning Coordinates\nMove around in the world\nPositions: ${coordinateTracker.obtained}`);
     }
     else {
@@ -142,7 +153,17 @@ let theta = 0;
 
 const northMarker = new Drone(mavFrame);
 setTimeout(() => northMarker.updatePosition({x:10, y:0, z:0}), 100);
-northMarker.updateColor("#3333ff")
+northMarker.updateColor("#3333ff");
+
+const originMarker = new Drone(mavFrame);
+setTimeout(() => {
+    originMarker.updatePosition({x:0, y:0, z:0});
+    originMarker.updateColor("#ff33ff");
+    originMarker.markerEl.setAttribute("geometry",{
+        radiusOuter: 0.5,
+        radiusInner: 0,
+    });
+}, 100);
 
 function getXY(phase,theta) {
     const rad = 20;
