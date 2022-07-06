@@ -100,8 +100,8 @@ socket.on("external-position",(message) => {
         spinnerRemoved = true;
     }
     let [ox,oz] = aligner.translation.toArray();
-    mavFrame.object3D.position = [ox,0,oz];
-    mavFrame.object3D.rotation = [90,0,aligner.yaw/Math.PI*180];
+    mavFrame.object3D.position.set(ox,0,oz);
+    mavFrame.object3D.rotation.set(90,0,aligner.yaw/Math.PI*180);
 });
 
 const pathPoints = (() => {
