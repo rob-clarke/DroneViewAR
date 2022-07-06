@@ -15,9 +15,9 @@ class GPSThread(threading.Thread):
     def __init__(self):
         super().__init__()
         self.new_position = threading.Event()
+        self.stream = Serial(os.environ['SERIAL_PATH'],int(os.environ['SERIAL_BAUD']))
 
     def run(self):
-        self.stream = Serial(os.environ['SERIAL_PATH'],int(os.environ['SERIAL_BAUD']))
         ubr = UBXReader(self.stream, protfilter=2)
 
         for (_,parsed) in ubr:
