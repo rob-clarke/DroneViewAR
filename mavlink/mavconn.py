@@ -11,7 +11,7 @@ def get_ids(url):
         [sysid,compid] = params.split('=')[1].split(',')
         if url[-1] == '/':
             url = url[:-1]
-    return url,sysid,compid
+    return url,int(sysid),int(compid)
 
 def parse_host_port(hp_string,default_host=None,default_port=None):
     """
