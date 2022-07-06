@@ -37,11 +37,12 @@ class DroneMonitor(threading.Thread):
                 continue
             if not hasattr(msg,'name'):
                 continue
+            print(msg,flush=True)
             if msg.name == "HEARTBEAT":
                 self.handle_heartbeat(msg)
             if msg.name == "SYS_STATUS":
                 self.handle_status(msg)
-            if msg.name == "LOCAL_POSITION_NED":
+            if msg.name == "GLOBAL_POSITION_INT":
                 self.handle_position(msg)
             if msg.name == "PARAM_VALUE":
                 self.handle_param(msg)
@@ -54,6 +55,8 @@ class DroneMonitor(threading.Thread):
         key = self._get_drone_key(msg.get_srcSystem(),msg.get_srcComponent())
         if key not in self.drones:
             self.drones[key] = Drone()
+            self.master.mav.command_long_send(1,0,511,0, 1,1000000,0,0,0,0,0)
+            self.master.mav.command_long_send(1,0,511,0,33, 500000,0,0,0,0,0)
         return self.drones[key]
 
     def handle_heartbeat(self,msg):
@@ -66,7 +69,7 @@ class DroneMonitor(threading.Thread):
 
     def handle_position(self,msg):
         drone = self._get_drone(msg)
-        drone.position = [msg.x,msg.y,msg.z]
+        drone.position = [msg.lat,msg.lon,msg.alt]
 
     def handle_param(self,msg):
         drone = self._get_drone(msg)
@@ -171,6 +174,31 @@ def get_drone():
             "battery": drone.battery,
             "mode": drone.mode,
             "position": drone.position,
+        })
+    else:
+        return jsonify(
+            {}
+        )
+
+@app.route("/drone_rel")
+def get_drone_rel():
+    system_id = int(request.args.get('sysid'))
+    component_id = int(request.args.get('compid'))
+    
+    key = dronemon._get_drone_key(system_id,component_id)
+    if key in dronemon.drones:
+        drone = dronemon.drones[key]
+        lat_0 = float(request.args.get('lat_0'))
+        long_0 = float(request.args.get('long_0'))
+        alt_0 = float(request.args.get('alt_0'))
+        position = geodetic2ned(
+                    float(drone.position[0]*1e-7), float(drone.position[1]*1e-7), float(drone.position[2]*1e-3),
+                    lat_0, long_0, alt_0
+                    )
+        return jsonify({
+            "battery": drone.battery,
+            "mode": drone.mode,
+            "position": position,
         })
     else:
         return jsonify(
