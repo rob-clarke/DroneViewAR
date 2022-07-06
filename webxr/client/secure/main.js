@@ -6,10 +6,6 @@ import './components/path.js';
 
 import { io } from "npm:socket.io-client";
 
-import CoordinateTracker from "./modules/CoordinateTracker.js";
-
-let coordinateTracker = new CoordinateTracker();
-
 import { makeEl } from './modules/Utils.js';
 
 function makeCamera() {
@@ -72,64 +68,40 @@ scene.addEventListener('enter-vr',() => {
 
 document.body.appendChild(scene);
 
-let aligned = false;
+import Aligner from './modules/Aligner.js';
+const aligner = new Aligner();
+let spinnerRemoved = false;
 let socket = io();
 socket.on("external-position",(message) => {
     if( !in_augmented_reality ) { 
         return;
-    }
+    }    
     
-    let {x,y,z} = camera.getAttribute("position");
     // We assume gravity is aligned so use x,z for internal coords to allow for 2D fitting problem
-    coordinateTracker.updateInternalCoords(x,z,Date.now());
-    
-    let t = 0;
-    coordinateTracker.updateExternalCoords(
-        message.x, message.y, message.t
-    );
+    let {x,y,z} = camera.getAttribute("position");
     
     socket.emit('positioning',{
         internal: {x,y,z},
         external: {x: message.x, y: message.y, z: message.z},
-        aligned,
+        alignment: aligner.phase,
     });
 
-    if( aligned ) {
+    if( aligner.phase <= aligner.AlignmentPhases.ALIGNING ) {
+        // Inject more coordinates
+        aligner.insertPositions([x,z],[message.x,message.y]);
+        const alignerText = aligner.update();
+        progressText.setAttribute("value", alignerText);
         return;
     }
-    
-    let spread = coordinateTracker.getSpread();
-    socket.emit('positioning',{
-        spread
-    });
-    
-    if(spread < 5 && !aligned) {
-        progressText.setAttribute(
-            "value",
-            `Aligning Coordinates\nMove around in the world\nPositions: ${coordinateTracker.obtained}`
-        );
+        
+    if( !spinnerRemoved ) {
+        camera.removeChild(progressText);
+        camera.removeChild(spinner);
+        spinnerRemoved = true;
     }
-    else {
-        if( !aligned ) {
-            camera.removeChild(progressText);
-            camera.removeChild(spinner);
-            aligned = true;
-        }
-        coordinateTracker.updateTransformMatrix();
-        const transform = new THREE.Matrix4();
-        // Get the transform that rotates the mavFrame to the WebXR frame
-        const ctfm = coordinateTracker.transform_matrix.toArray();
-        // This matrix builds in the transform from NED to the WebXR orientation
-        //  i.e. anything within the mavFrame is expressed in NED
-        transform.set(
-            ctfm[0][0],  0,  ctfm[0][1], ctfm[0][2],
-                     0,  0, -ctfm[1][1],          0,
-            ctfm[1][0],  1,           0, ctfm[1][2],
-                     0,  0,           0,          1,
-        );
-        mavFrame.object3D.matrix = transform;
-        mavFrame.object3D.matrixAutoUpdate = false; 
-    }
+    let [ox,oz] = aligner.translation.toArray();
+    mavFrame.object3D.position = [ox,0,oz];
+    mavFrame.object3D.rotation = [90,0,aligner.yaw/Math.PI*180];
 });
 
 const pathPoints = (() => {
@@ -156,6 +128,7 @@ class CompassDisplay {
 }
 
 import { Drone } from './modules/Drone.js';
+import Aligner from './modules/Aligner.js';
 
 const drones = [...Array(4).keys()].map(() => new Drone(mavFrame));
 const dronePhases = [0, 0.5*Math.PI, Math.PI, 1.5*Math.PI];

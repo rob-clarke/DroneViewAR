@@ -19,26 +19,32 @@ Assuming x_w is north aligned, transform is:
     z_w = y_g
 */
 
-class CoordinateBuffer {
+export class CoordinateBuffer {
     constructor(length,dim=2) {
         this.length = length;
         this.dim = dim;
         this.coordinates = new Float32Array(length*dim);
         this.times = new Uint32Array(length);
         this.head = 0;
+        this.obtained = 0;
     }
 
+    _get_index(i) {
+        return ((this.head - i + this.length) % this.length) * this.dim;
+    }
+    
     insert(position,t) {
         [...Array(this.dim).keys()].map((i) => {
             this.coordinates[this.head*this.dim+i] = position[i];
         });
         this.times[this.head] = t;
         this.head = (this.head + 1) % this.length;
+        this.obtained = Math.min(this.length - 1,this.obtained + 1);
     }
 
     get_vector(i) {
         return math.matrix([...Array(this.dim).keys()].map(
-            (j) => [this.coordinates[i+j]]
+            (j) => [ this.coordinates[this._get_index(i+1)+j] ]
         ));
     }
 
