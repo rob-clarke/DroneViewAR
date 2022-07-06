@@ -19,11 +19,10 @@ function makeCamera() {
 
 function makeScene() {
     const sky = makeEl('a-sky',{color: "#000000"});
-    const camera = makeCamera();
     const scene = makeEl('a-scene',{
         webxr: "optionalFeatures: hit-test",
         light: "defaultLightsEnabled: false",
-    },[sky,camera]);
+    },[sky]);
     return scene;
 }
 
