@@ -16,6 +16,8 @@ COPY . /app
 
 RUN npm run build
 
+RUN cp -r /app/client/secure/assets /app/dist/assets
+
 FROM node:alpine
 
 RUN apk add git
