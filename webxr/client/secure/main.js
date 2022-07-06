@@ -70,6 +70,7 @@ document.body.appendChild(scene);
 import Aligner from './modules/Aligner.js';
 const aligner = new Aligner();
 let spinnerRemoved = false;
+let frameSet = false;
 let socket = io();
 socket.on("external-position",(message) => {
     if( !in_augmented_reality ) { 
@@ -93,6 +94,10 @@ socket.on("external-position",(message) => {
         return;
     }
         
+    if( frameSet ) {
+        return;
+    }
+    
     if( !spinnerRemoved ) {
         camera.removeChild(progressText);
         camera.removeChild(spinner);
@@ -100,7 +105,8 @@ socket.on("external-position",(message) => {
     }
     let [ox,oz] = aligner.translation.toArray();
     mavFrame.object3D.position.set(ox,0,oz);
-    mavFrame.object3D.rotation.set(90,0,aligner.yaw/Math.PI*180);
+    mavFrame.setAttribute('rotation',`90 0 ${aligner.yaw/Math.PI*180}`);
+    frameSet = true;
 });
 
 const pathPoints = (() => {
