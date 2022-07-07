@@ -72,6 +72,7 @@ class DroneMonitor(threading.Thread):
     def handle_position(self,msg):
         drone = self._get_drone(msg)
         drone.position = [msg.lat,msg.lon,msg.alt]
+        drone.velocity = [msg.vx/100, msg.vy/100, msg.vz/100]
 
     def handle_param(self,msg):
         drone = self._get_drone(msg)
@@ -175,7 +176,12 @@ def get_drone():
         return jsonify({
             "battery": drone.battery,
             "mode": drone.mode,
-            "position": drone.position,
+            "position": [
+                float(drone.position[0]*1e-7),
+                float(drone.position[1]*1e-7),
+                float(drone.position[2]*1e-3)
+            ],
+            "velocity": drone.velocity,
         })
     else:
         return jsonify(
@@ -201,6 +207,7 @@ def get_drone_rel():
             "battery": drone.battery,
             "mode": drone.mode,
             "position": position,
+            "velocity": drone.velocity,
         })
     else:
         return jsonify(
