@@ -1,4 +1,5 @@
 import './primitives/DroneMarker.js';
+import './primitives/DronePointer.js';
 import './primitives/UserFacingPlane.js';
 import './primitives/Spinner.js';
 
