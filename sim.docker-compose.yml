@@ -27,6 +27,7 @@ services:
   sitl:
     image: uobflightlabstarling/starling-sim-ardupilot-plane
     ports:
+      - "5760:5760"
       - "5762:5762"
     environment:
       - AP_HOME=52.818,-4.125,34.77,0
