@@ -144,6 +144,11 @@ socket.on('drone-position',(msg) => {
         x: msg.data.position[0],
         y: msg.data.position[1],
         z: msg.data.position[2],
+    },
+    {
+        x: msg.data.velocity[0],
+        y: msg.data.velocity[1],
+        z: msg.data.velocity[2],
     });
 });
 

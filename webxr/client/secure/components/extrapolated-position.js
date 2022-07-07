@@ -5,14 +5,16 @@ AFRAME.registerComponent('extrapolated-position', {
         velocity: { type: 'vec3' },
         
     },
-    init: function() {},
+    init: function() {
+        this.updateTime = 0;
+    },
     update: function(oldData) {
-        this.el.updateTime = this.el.sceneEl.time; 
+        this.updateTime = this.el.sceneEl.time;
         const {x,y,z} = this.data.position;
         this.el.object3D.position.set(x,y,z);
     },
     tick: function(time) {
-        const deltaT = time - this.el.updateTime;
+        const deltaT = (time - this.updateTime)/1000;
         const {x,y,z} = this.data.position;
         
         const vx = this.data.velocity.x;

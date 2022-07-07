@@ -1,10 +1,12 @@
 import { makeEl } from './Utils.js';
+import '../components/extrapolated-position.js';
 
 export class Drone {
     constructor(parent,position={x:0,y:0,z:0},colour="#ffffff") {
         this.markerEl = makeEl('a-drone-marker',{
             position: `${position.x} ${position.y} ${position.z}`,
-            colour
+            colour,
+            'extrapolated-position': `position: ${position.x} ${position.y} ${position.z}; velocity: 0 0 0`,
         });
         parent.appendChild(this.markerEl);
     }
@@ -14,10 +16,13 @@ export class Drone {
         this.markerEl.sceneEl.appendChild(this.missionPath);
     }
 
-    updatePosition(position) {
-        this.markerEl.object3D.position.x = position.x;
-        this.markerEl.object3D.position.y = position.y;
-        this.markerEl.object3D.position.z = position.z;
+    updatePosition(position, velocity={x:0,y:0,z:0}) {
+        this.markerEl.setAttribute('extrapolated-position',
+            { position, velocity }
+        );
+        // this.markerEl.object3D.position.x = position.x;
+        // this.markerEl.object3D.position.y = position.y;
+        // this.markerEl.object3D.position.z = position.z;
     }
 
     updateColor(color) {
