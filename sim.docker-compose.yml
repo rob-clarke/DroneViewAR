@@ -1,10 +1,5 @@
 version: '3'
 services:
-  gps:
-    build: gps
-    ports:
-      - "3000:3000"
-  
   mav:
     build: mavlink
     ports:
@@ -20,8 +15,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # - GPS_HOST=gps:3000
-      - GPS_HOST=192.168.111.1:3000
+      - SIM_GPS=true
+      - SIM_GPS_ORIGIN={"lat":52.818,"lon":-4.125,"alt":35}
+      - GPS_HOST=gps:3000
       - MAV_HOST=mav:4000
   
   sitl:
@@ -30,4 +26,4 @@ services:
       - "5760:5760"
       - "5762:5762"
     environment:
-      - AP_HOME=52.818,-4.125,34.77,0
+      - AP_HOME=52.818,-4.125,35,0

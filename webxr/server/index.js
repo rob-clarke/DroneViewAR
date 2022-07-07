@@ -124,6 +124,11 @@ class Client {
     }
     
     getGpsOrigin() {
+        console.log(process.env.SIM_GPS)
+        if( process.env.SIM_GPS === "true" ) {
+            this.gpsOrigin = JSON.parse(process.env.SIM_GPS_ORIGIN);
+            return;
+        }
         fetch(`http://${process.env.GPS_HOST}/gps`)
           .then(res => res.json())
           .then(obj => {
@@ -138,6 +143,14 @@ class Client {
     }
     
     updateGpsPosition() {
+        if( process.env.SIM_GPS === "true" ) {
+            if( this.sim_pos === undefined ) {
+                this.sim_pos = {x:0,y:0,z:0};
+                setTimeout(() => {this.sim_pos = {x:-7,y:0,z:0}}, 14000);
+            }
+            this.sendPositionData(this.sim_pos.x,this.sim_pos.y,this.sim_pos.z);
+            return;
+        }
         fetch(`http://${process.env.GPS_HOST}/position`)
           .then(res => res.json())
           .then(obj => {
