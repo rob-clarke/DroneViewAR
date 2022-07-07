@@ -37,7 +37,7 @@ class DroneMonitor(threading.Thread):
                 continue
             if not hasattr(msg,'name'):
                 continue
-            print(msg,flush=True)
+            # print(msg,flush=True)
             if msg.name == "HEARTBEAT":
                 self.handle_heartbeat(msg)
             if msg.name == "SYS_STATUS":
@@ -60,12 +60,14 @@ class DroneMonitor(threading.Thread):
         return self.drones[key]
 
     def handle_heartbeat(self,msg):
+        if msg.type == mavutil.mavlink.MAV_TYPE_GCS:
+            return
         drone = self._get_drone(msg)
         drone.mode = str(msg.base_mode)
     
     def handle_status(self,msg):
         drone = self._get_drone(msg)
-        drone.battery = msg.voltage_battery
+        drone.battery = msg.voltage_battery / 1000
 
     def handle_position(self,msg):
         drone = self._get_drone(msg)

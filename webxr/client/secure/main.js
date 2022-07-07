@@ -135,6 +135,18 @@ class CompassDisplay {
 import { Drone } from './modules/Drone.js';
 import Aligner from './modules/Aligner.js';
 
+let liveDrones = {};
+socket.on('drone-position',(msg) => {
+    if( ! liveDrones.hasOwnProperty(msg.id) ) {
+        liveDrones[msg.id] = new Drone(mavFrame);
+    }
+    liveDrones[msg.id].updatePosition({
+        x: msg.data.position[0],
+        y: msg.data.position[1],
+        z: msg.data.position[2],
+    });
+});
+
 const drones = [...Array(4).keys()].map(() => new Drone(mavFrame));
 const dronePhases = [0, 0.5*Math.PI, Math.PI, 1.5*Math.PI];
 

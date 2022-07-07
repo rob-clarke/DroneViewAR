@@ -74,15 +74,71 @@ function requestListener(req,res) {
     });
 }
 
-function socketListener(socket) {
-    console.log("Socket connection");
-    const sendData = (x,y,z) => {
-        socket.emit('external-position',{
+class Drone {
+    constructor(sysid,compid) {
+        this.sysid = sysid;
+        this.compid = compid;
+    }
+    
+    _getParams(origin) {
+        const params = new URLSearchParams();
+        params.append("sysid",this.sysid);
+        params.append("compid",this.compid);
+        params.append("lat_0",origin.lat);
+        params.append("long_0",origin.lon);
+        params.append("alt_0",origin.alt);
+        return params;
+    }
+    
+    async getPosition(origin) {
+        const params = this._getParams(origin);
+        const reqURL = `http://${process.env.MAV_HOST}/drone_rel?${params.toString()}`;
+        const relPos = await fetch(reqURL).then(res => res.json());
+        return relPos;
+    }
+    
+    async getFlightPlan(origin) {
+        const params = this._getParams(origin);
+        const reqURL = `http://${process.env.MAV_HOST}/get_flightplan?${params.toString()}`;
+        const flightPlan = await fetch(reqURL).then(res => res.json());
+        return flightPlan;
+    }
+}
+
+class Client {
+    constructor(socket) {
+        this.socket = socket;
+        this.gpsOrigin = null;
+        this.drones = {};
+        
+        this.gpsPositionInterval = setInterval(() => {this.updateGpsPosition()},1000);
+        this.gpsOriginTimeout = setTimeout(() => {this.getGpsOrigin()},1000);
+        this.droneListInterval = setInterval(() => {this.updateDroneList()},2000);
+        this.dronesInterval = setInterval(() => {this.updateDrones()},500);
+    }
+    
+    sendPositionData(x,y,z) {
+        this.socket.emit('external-position',{
             x, y, z, t: 0
         });
-    };
-    const interval = setInterval(() => {
-        fetch(process.env.GPS_POSITION_URL)
+    }
+    
+    getGpsOrigin() {
+        fetch(`http://${process.env.GPS_HOST}/gps`)
+          .then(res => res.json())
+          .then(obj => {
+            if( obj.success ) {
+                this.gpsOrigin = obj.origin;
+            }
+          })
+          .catch((e) => {
+            console.warn(`Failed to get GPS origin: ${e}`);
+            this.gpsOriginTimeout = setTimeout(() => {this.getGpsOrigin()},1000);
+          });
+    }
+    
+    updateGpsPosition() {
+        fetch(`http://${process.env.GPS_HOST}/position`)
           .then(res => res.json())
           .then(obj => {
             // obj looks like:
@@ -91,12 +147,59 @@ function socketListener(socket) {
                 console.warn("Failed to get GPS position");
                 return;
             }
-            sendData(obj.x,obj.y,obj.z);
+            this.sendPositionData(obj.x,obj.y,obj.z);
           })
             .catch(e => console.error(e));
-    }, 1000);
+        }
+    
+    updateDroneList() {
+        fetch(`http://${process.env.MAV_HOST}/drones`)
+          .then((res) => res.json())
+          .then(obj => {
+            for( let i in obj ) {
+                const [sysid,compid] = obj[i].split('/');
+                if( ! this.drones.hasOwnProperty(obj[i]) ) {
+                    this.drones[obj[i]] = new Drone(sysid,compid);
+                }
+            }
+          });
+    }
+    
+    async updateDrones() {
+        if( this.gpsOrigin === null ) {
+            return;
+        }
+        for( let key in this.drones ) {
+            const drone = this.drones[key];
+            try {
+                const droneData = await drone.getPosition(this.gpsOrigin);
+                this.socket.emit('drone-position',{id: drone.sysid, data: droneData});
+            }
+            catch(e) {
+                // Do nothing...
+                console.warn(`Error getting position: ${e}`);
+            }
+        }
+    }
+        
+    cleanup() {
+        clearInterval(this.gpsPositionInterval);
+        clearTimeout(this.gpsOriginTimeout);
+        clearInterval(this.droneListInterval);
+        clearInterval(this.dronesInterval);
+    }
+}
+
+let client = null;
+
+function socketListener(socket) {
+    console.log("Socket connection");
+    client = new Client(socket);
+    
     socket.on("positioning",(m) => console.log(m));
-    socket.on("disconnect",() => clearInterval(interval));
+    socket.on("disconnect",() => {
+        client.cleanup();
+    });
 }
 
 const options = {

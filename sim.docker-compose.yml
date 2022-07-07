@@ -20,5 +20,13 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - GPS_HOST=gps:3000
+      # - GPS_HOST=gps:3000
+      - GPS_HOST=192.168.111.1:3000
       - MAV_HOST=mav:4000
+  
+  sitl:
+    image: uobflightlabstarling/starling-sim-ardupilot-plane
+    ports:
+      - "5762:5762"
+    environment:
+      - AP_HOME=52.818,-4.125,34.77,0
