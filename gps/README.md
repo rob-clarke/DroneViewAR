@@ -14,5 +14,5 @@ The RTK version also expects to have an "RTCM_ENDPOINT" environment variable
 passed to denote where to send the RTCM traffic:
 
 ```sh
-docker run -e RTCM_ENDPOINT=http://192.168.111.1/rtcm gpsserver python rtkserver.py
+docker run -e RTCM_ENDPOINT=http://192.168.111.1:3000/rtcm gpsserver python rtkserver.py
 ```

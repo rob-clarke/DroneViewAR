@@ -1,0 +1,27 @@
+version: '3'
+services:
+  vicon:
+    build: vicon
+    # ports:
+    #   - "3000:3000"
+    network_mode: host
+  
+  mav:
+    build: mavlink
+    # ports:
+    #   - "4000:4000"
+    network_mode: host
+    # devices:
+      # - "/dev/ttyUSB0"
+    environment:
+      # - MAVLINK_URL=serial:///dev/ttyUSB0:57600?ids=200,1
+      - MAVLINK_URL=tcp://sitl:5760?ids=200,1
+
+  web:
+    build: webxr
+    # ports:
+    #   - "8000:8000"
+    network_mode: host
+    environment:
+      - GPS_HOST=localhost:3000
+      - MAV_HOST=localhost:4000
